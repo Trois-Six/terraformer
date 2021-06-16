@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/GoogleCloudPlatform/terraformer/terraformutils"
+	"github.com/PaloAltoNetworks/pango"
 	"github.com/PaloAltoNetworks/pango/util"
 )
 
@@ -56,15 +57,15 @@ func (g *FirewallPolicyGenerator) createResourcesFromList(o getGeneric, terrafor
 }
 
 func (g *FirewallPolicyGenerator) createNATRuleGroupResources() []terraformutils.Resource {
-	return g.createResourcesFromList(getGeneric{g.client.Policies.Nat, []string{g.vsys}}, "panos_nat_rule_group")
+	return g.createResourcesFromList(getGeneric{g.client.(*pango.Firewall).Policies.Nat, []string{g.vsys}}, "panos_nat_rule_group")
 }
 
 func (g *FirewallPolicyGenerator) createPBFRuleGroupResources() []terraformutils.Resource {
-	return g.createResourcesFromList(getGeneric{g.client.Policies.PolicyBasedForwarding, []string{g.vsys}}, "panos_pbf_rule_group")
+	return g.createResourcesFromList(getGeneric{g.client.(*pango.Firewall).Policies.PolicyBasedForwarding, []string{g.vsys}}, "panos_pbf_rule_group")
 }
 
 func (g *FirewallPolicyGenerator) createSecurityRuleGroupResources() []terraformutils.Resource {
-	return g.createResourcesFromList(getGeneric{g.client.Policies.Security, []string{g.vsys}}, "panos_security_rule_group")
+	return g.createResourcesFromList(getGeneric{g.client.(*pango.Firewall).Policies.Security, []string{g.vsys}}, "panos_security_rule_group")
 }
 
 func (g *FirewallPolicyGenerator) InitResources() error {
