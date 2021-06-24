@@ -15,38 +15,15 @@
 package panos
 
 import (
-	"encoding/xml"
-	"reflect"
+	"fmt"
 	"strings"
 	"unicode"
 
 	"github.com/PaloAltoNetworks/pango"
-	"github.com/PaloAltoNetworks/pango/util"
 	"golang.org/x/text/secure/precis"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 )
-
-// func Initialize(o interface{}) (interface{}, error) {
-// 	c := pango.Client{
-// 		CheckEnvironment: true,
-// 	}
-
-// 	if val := os.Getenv("PANOS_LOGGING"); val == "" {
-// 		c.Logging = pango.LogQuiet
-// 	}
-
-// 	switch o.(type) {
-// 	case pango.Firewall:
-// 		fw := &pango.Firewall{Client: c}
-// 		return fw, fw.Initialize()
-// 	case pango.Panorama:
-// 		pano := &pango.Panorama{Client: c}
-// 		return pano, pano.Initialize()
-// 	}
-
-// 	return nil, fmt.Errorf("not supported")
-// }
 
 func Initialize() (interface{}, error) {
 	return pango.Connect(pango.Client{
@@ -60,21 +37,16 @@ func GetVsysList() ([]string, interface{}, error) {
 		return []string{}, nil, err
 	}
 
-	vsysList, err := client.(util.XapiClient).EntryListUsing(client.(util.XapiClient).Get, []string{
-		"config",
-		"devices",
-		util.AsEntryXpath([]string{"localhost.localdomain"}),
-		"vsys",
-	})
-	if err != nil {
-		return []string{}, nil, err
-	}
-
-	if len(vsysList) == 0 {
+	switch c := client.(type) {
+	case *pango.Panorama:
 		return []string{"shared"}, pango.Panorama{}, nil
+	case *pango.Firewall:
+		var vsysList []string
+		vsysList, err = c.Vsys.GetList()
+		return vsysList, pango.Firewall{}, err
 	}
 
-	return vsysList, reflect.TypeOf(client), nil
+	return []string{}, nil, fmt.Errorf("client type not supported")
 }
 
 func FilterCallableResources(t interface{}, resources []string) []string {
@@ -87,7 +59,7 @@ func FilterCallableResources(t interface{}, resources []string) []string {
 				filteredResources = append(filteredResources, r)
 			}
 		}
-	default:
+	case pango.Firewall:
 		for _, r := range resources {
 			if strings.HasPrefix(r, "firewall_") {
 				filteredResources = append(filteredResources, r)
@@ -177,54 +149,6 @@ type getListWithFiveArgs interface {
 type getGeneric struct {
 	i      interface{}
 	params []string
-}
-
-type Response struct {
-	XMLName xml.Name `xml:"response"`
-	Result  Result   `xml:"result"`
-}
-
-type Result struct {
-	XMLName xml.Name `xml:"result"`
-	Vsys    Vsys     `xml:"vsys"`
-}
-
-type Vsys struct {
-	XMLName xml.Name `xml:"vsys"`
-	Entries []Entry  `xml:"entry"`
-}
-
-type Entry struct {
-	XMLName xml.Name `xml:"entry"`
-	Name    string   `xml:"name,attr"`
-	Import  Import   `xml:"import"`
-}
-
-type Import struct {
-	XMLName xml.Name `xml:"import"`
-	Network Network  `xml:"network"`
-}
-
-type Network struct {
-	XMLName       xml.Name      `xml:"network"`
-	Interface     Interface     `xml:"interface"`
-	VirtualRouter VirtualRouter `xml:"virtual-router"`
-	Vlan          Vlan          `xml:"vlan"`
-}
-
-type Interface struct {
-	XMLName xml.Name `xml:"interface"`
-	Members []string `xml:"member"`
-}
-
-type VirtualRouter struct {
-	XMLName xml.Name `xml:"virtual-router"`
-	Members []string `xml:"member"`
-}
-
-type Vlan struct {
-	XMLName xml.Name `xml:"vlan"`
-	Members []string `xml:"member"`
 }
 
 func contains(s []string, e string) bool {

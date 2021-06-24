@@ -15,7 +15,6 @@
 package panos
 
 import (
-	"encoding/xml"
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/terraformer/terraformutils"
@@ -24,6 +23,7 @@ import (
 	"github.com/PaloAltoNetworks/pango/netw/interface/subinterface/layer2"
 	"github.com/PaloAltoNetworks/pango/netw/interface/subinterface/layer3"
 	"github.com/PaloAltoNetworks/pango/util"
+	"github.com/PaloAltoNetworks/pango/vsys"
 )
 
 type PanoramaNetworkingGenerator struct {
@@ -91,15 +91,15 @@ func (g *PanoramaNetworkingGenerator) createResourcesFromList(
 	return resources
 }
 
-func (g *PanoramaNetworkingGenerator) createAggregateInterfaceResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createAggregateInterfaceResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.AggregateInterface.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, aggregateInterface := range l {
-			if !contains(vsys.Import.Network.Interface.Members, aggregateInterface) {
+			if !contains(vsys.NetworkImports.Interfaces, aggregateInterface) {
 				continue
 			}
 
@@ -291,15 +291,15 @@ func (g *PanoramaNetworkingGenerator) createBGPRedistResources(tmpl, ts, virtual
 	)
 }
 
-func (g *PanoramaNetworkingGenerator) createEthernetInterfaceResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createEthernetInterfaceResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.EthernetInterface.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, ethernetInterface := range l {
-			if !contains(vsys.Import.Network.Interface.Members, ethernetInterface) {
+			if !contains(vsys.NetworkImports.Interfaces, ethernetInterface) {
 				continue
 			}
 
@@ -463,15 +463,15 @@ func (g *PanoramaNetworkingGenerator) createLayer3SubInterfaceResources(tmpl, ts
 	)
 }
 
-func (g *PanoramaNetworkingGenerator) createLoopbackInterfaceResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createLoopbackInterfaceResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.LoopbackInterface.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, loopbackInterface := range l {
-			if !contains(vsys.Import.Network.Interface.Members, loopbackInterface) {
+			if !contains(vsys.NetworkImports.Interfaces, loopbackInterface) {
 				continue
 			}
 
@@ -540,15 +540,15 @@ func (g *PanoramaNetworkingGenerator) createStaticRouteIpv4Resources(tmpl, ts, v
 	)
 }
 
-func (g *PanoramaNetworkingGenerator) createTunnelInterfaceResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createTunnelInterfaceResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.TunnelInterface.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, tunnelInterface := range l {
-			if !contains(vsys.Import.Network.Interface.Members, tunnelInterface) {
+			if !contains(vsys.NetworkImports.Interfaces, tunnelInterface) {
 				continue
 			}
 
@@ -571,15 +571,15 @@ func (g *PanoramaNetworkingGenerator) createTunnelInterfaceResources(tmpl, ts st
 	return resources
 }
 
-func (g *PanoramaNetworkingGenerator) createVirtualRouterResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createVirtualRouterResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.VirtualRouter.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, virtualRouter := range l {
-			if !contains(vsys.Import.Network.VirtualRouter.Members, virtualRouter) {
+			if !contains(vsys.NetworkImports.VirtualRouters, virtualRouter) {
 				continue
 			}
 
@@ -616,15 +616,15 @@ func (g *PanoramaNetworkingGenerator) createVirtualRouterResources(tmpl, ts stri
 }
 
 // FIX: get VLANs in Vsys = None
-func (g *PanoramaNetworkingGenerator) createVlanResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createVlanResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.Vlan.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, vlan := range l {
-			if !contains(vsys.Import.Network.Vlan.Members, vlan) {
+			if !contains(vsys.NetworkImports.Vlans, vlan) {
 				continue
 			}
 
@@ -647,15 +647,15 @@ func (g *PanoramaNetworkingGenerator) createVlanResources(tmpl, ts string, v Vsy
 	return resources
 }
 
-func (g *PanoramaNetworkingGenerator) createVlanInterfaceResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
+func (g *PanoramaNetworkingGenerator) createVlanInterfaceResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
 	l, err := g.client.(*pango.Panorama).Network.VlanInterface.GetList(tmpl, ts)
 	if err != nil {
 		return []terraformutils.Resource{}
 	}
 
-	for _, vsys := range v.Entries {
+	for _, vsys := range v {
 		for _, vlanInterface := range l {
-			if !contains(vsys.Import.Network.Interface.Members, vlanInterface) {
+			if !contains(vsys.NetworkImports.Interfaces, vlanInterface) {
 				continue
 			}
 
@@ -678,8 +678,8 @@ func (g *PanoramaNetworkingGenerator) createVlanInterfaceResources(tmpl, ts stri
 	return resources
 }
 
-func (g *PanoramaNetworkingGenerator) createZoneResources(tmpl, ts string, v Vsys) (resources []terraformutils.Resource) {
-	for _, vsys := range v.Entries {
+func (g *PanoramaNetworkingGenerator) createZoneResources(tmpl, ts string, v []vsys.Entry) (resources []terraformutils.Resource) {
+	for _, vsys := range v {
 		l, err := g.client.(*pango.Panorama).Network.Zone.GetList(tmpl, ts, vsys.Name)
 		if err != nil {
 			return []terraformutils.Resource{}
@@ -725,42 +725,27 @@ func (g *PanoramaNetworkingGenerator) InitResources() error {
 	}
 
 	for _, v := range tmpl {
-		vsysRawFull, err := g.client.(util.XapiClient).Get([]string{
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"template",
-			util.AsEntryXpath([]string{v}),
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"vsys",
-		}, nil, nil)
+		vsysAll, err := g.client.(*pango.Panorama).Vsys.GetAll(v, "")
 		if err != nil {
 			return err
 		}
 
-		var resp Response
-		if err = xml.Unmarshal(vsysRawFull, &resp); err != nil {
-			return err
-		}
-
-		g.Resources = append(g.Resources, g.createAggregateInterfaceResources(v, "", resp.Result.Vsys)...)
+		g.Resources = append(g.Resources, g.createAggregateInterfaceResources(v, "", vsysAll)...)
 		g.Resources = append(g.Resources, g.createBFDProfileResources(v, "")...)
-		g.Resources = append(g.Resources, g.createEthernetInterfaceResources(v, "", resp.Result.Vsys)...)
+		g.Resources = append(g.Resources, g.createEthernetInterfaceResources(v, "", vsysAll)...)
 		g.Resources = append(g.Resources, g.createGRETunnelResources(v, "")...)
 		g.Resources = append(g.Resources, g.createIKECryptoProfileResources(v, "")...)
 		g.Resources = append(g.Resources, g.createIKEGatewayResources(v, "")...)
 		g.Resources = append(g.Resources, g.createIPSECCryptoProfileResources(v, "")...)
 		g.Resources = append(g.Resources, g.createIPSECTunnelResources(v, "")...)
-		g.Resources = append(g.Resources, g.createLoopbackInterfaceResources(v, "", resp.Result.Vsys)...)
+		g.Resources = append(g.Resources, g.createLoopbackInterfaceResources(v, "", vsysAll)...)
 		g.Resources = append(g.Resources, g.createManagementProfileResources(v, "")...)
 		g.Resources = append(g.Resources, g.createMonitorProfileResources(v, "")...)
-		g.Resources = append(g.Resources, g.createTunnelInterfaceResources(v, "", resp.Result.Vsys)...)
-		g.Resources = append(g.Resources, g.createVirtualRouterResources(v, "", resp.Result.Vsys)...)
-		g.Resources = append(g.Resources, g.createVlanResources(v, "", resp.Result.Vsys)...)
-		g.Resources = append(g.Resources, g.createVlanInterfaceResources(v, "", resp.Result.Vsys)...)
-		g.Resources = append(g.Resources, g.createZoneResources(v, "", resp.Result.Vsys)...)
+		g.Resources = append(g.Resources, g.createTunnelInterfaceResources(v, "", vsysAll)...)
+		g.Resources = append(g.Resources, g.createVirtualRouterResources(v, "", vsysAll)...)
+		g.Resources = append(g.Resources, g.createVlanResources(v, "", vsysAll)...)
+		g.Resources = append(g.Resources, g.createVlanInterfaceResources(v, "", vsysAll)...)
+		g.Resources = append(g.Resources, g.createZoneResources(v, "", vsysAll)...)
 	}
 
 	return nil

@@ -260,17 +260,7 @@ func (g *PanoramaDeviceConfigGenerator) InitResources() error {
 	for _, v := range ts {
 		g.Resources = append(g.Resources, g.createTemplateVariableResources("", v)...)
 
-		vsysList, err := g.client.(util.XapiClient).EntryListUsing(g.client.(util.XapiClient).Get, []string{
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"template",
-			util.AsEntryXpath([]string{v}),
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"vsys",
-		})
+		vsysList, err := g.client.(*pango.Panorama).Vsys.GetList("", v)
 		if err != nil {
 			continue
 		}
@@ -293,17 +283,10 @@ func (g *PanoramaDeviceConfigGenerator) InitResources() error {
 	for _, v := range tmpl {
 		g.Resources = append(g.Resources, g.createTemplateVariableResources(v, "")...)
 
-		vsysList, err := g.client.(util.XapiClient).EntryListUsing(g.client.(util.XapiClient).Get, []string{
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"template",
-			util.AsEntryXpath([]string{v}),
-			"config",
-			"devices",
-			util.AsEntryXpath([]string{"localhost.localdomain"}),
-			"vsys",
-		})
+		vsysList, err := g.client.(*pango.Panorama).Vsys.GetList(v, "")
+		if err != nil {
+			continue
+		}
 		if err != nil {
 			continue
 		}
