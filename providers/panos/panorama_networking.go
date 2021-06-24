@@ -35,11 +35,6 @@ func (g *PanoramaNetworkingGenerator) createResourcesFromList(
 	idPrefix string,
 	useIDForResourceName bool,
 	terraformResourceName string,
-	checkIfIsVsys bool,
-	vsys string,
-	checkType string,
-	tmpl string,
-	ts string,
 ) (resources []terraformutils.Resource) {
 	var l []string
 	var err error
@@ -65,13 +60,6 @@ func (g *PanoramaNetworkingGenerator) createResourcesFromList(
 	}
 
 	for _, r := range l {
-		if checkIfIsVsys {
-			rv, err := g.client.(*pango.Panorama).IsImported(checkType, tmpl, ts, vsys, r)
-			if err != nil || !rv {
-				continue
-			}
-		}
-
 		id := idPrefix + r
 		resources = append(resources, terraformutils.NewSimpleResource(
 			id,
@@ -138,7 +126,7 @@ func (g *PanoramaNetworkingGenerator) createAggregateInterfaceResources(tmpl, ts
 func (g *PanoramaNetworkingGenerator) createBFDProfileResources(tmpl, ts string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BfdProfile, []string{tmpl, ts}},
-		tmpl+":"+ts+":", false, "panos_panorama_bfd_profile", false, "", "", "", "",
+		tmpl+":"+ts+":", false, "panos_panorama_bfd_profile",
 	)
 }
 
@@ -178,14 +166,14 @@ func (g *PanoramaNetworkingGenerator) createBGPAggregateResources(tmpl, ts, virt
 func (g *PanoramaNetworkingGenerator) createBGPAggregateAdvertiseFilterResources(tmpl, ts, virtualRouter, bgpAggregate string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpAggAdvertiseFilter, []string{tmpl, ts, virtualRouter, bgpAggregate}},
-		tmpl+":"+ts+":"+virtualRouter+":"+bgpAggregate+":", true, "panos_panorama_bgp_aggregate_advertise_filter", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":"+bgpAggregate+":", true, "panos_panorama_bgp_aggregate_advertise_filter",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPAggregateSuppressFilterResources(tmpl, ts, virtualRouter, bgpAggregate string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpAggSuppressFilter, []string{tmpl, ts, virtualRouter, bgpAggregate}},
-		tmpl+":"+ts+":"+virtualRouter+":"+bgpAggregate+":", true, "panos_panorama_bgp_aggregate_suppress_filter", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":"+bgpAggregate+":", true, "panos_panorama_bgp_aggregate_suppress_filter",
 	)
 }
 
@@ -193,7 +181,7 @@ func (g *PanoramaNetworkingGenerator) createBGPAggregateSuppressFilterResources(
 func (g *PanoramaNetworkingGenerator) createBGPAuthProfileResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpAuthProfile, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_auth_profile", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_auth_profile",
 	)
 }
 
@@ -223,35 +211,35 @@ func (g *PanoramaNetworkingGenerator) createBGPConditionalAdvertisementResources
 func (g *PanoramaNetworkingGenerator) createBGPConditionalAdvertisementAdvertiseFilterResources(tmpl, ts, virtualRouter, bgpConditionalAdv string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpConAdvAdvertiseFilter, []string{tmpl, ts, virtualRouter, bgpConditionalAdv}},
-		tmpl+":"+ts+":"+virtualRouter+":"+bgpConditionalAdv+":", true, "panos_panorama_bgp_conditional_adv_advertise_filter", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":"+bgpConditionalAdv+":", true, "panos_panorama_bgp_conditional_adv_advertise_filter",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPConditionalAdvertisementNonExistFilterResources(tmpl, ts, virtualRouter, bgpConditionalAdv string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpConAdvNonExistFilter, []string{tmpl, ts, virtualRouter, bgpConditionalAdv}},
-		tmpl+":"+ts+":"+virtualRouter+":"+bgpConditionalAdv+":", true, "panos_panorama_bgp_conditional_adv_non_exist_filter", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":"+bgpConditionalAdv+":", true, "panos_panorama_bgp_conditional_adv_non_exist_filter",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPDampeningProfileResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpDampeningProfile, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_dampening_profile", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_dampening_profile",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPExportRuleGroupResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpExport, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_export_rule_group", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_export_rule_group",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPImportRuleGroupResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpImport, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_import_rule_group", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_import_rule_group",
 	)
 }
 
@@ -280,14 +268,14 @@ func (g *PanoramaNetworkingGenerator) createBGPPeerGroupResources(tmpl, ts, virt
 func (g *PanoramaNetworkingGenerator) createBGPPeerResources(tmpl, ts, virtualRouter, bgpPeerGroup string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpPeer, []string{tmpl, ts, virtualRouter, bgpPeerGroup}},
-		tmpl+":"+ts+":"+virtualRouter+":"+bgpPeerGroup+":", true, "panos_panorama_bgp_peer", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":"+bgpPeerGroup+":", true, "panos_panorama_bgp_peer",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createBGPRedistResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.BgpRedistRule, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_redist_rule", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_bgp_redist_rule",
 	)
 }
 
@@ -338,7 +326,7 @@ func (g *PanoramaNetworkingGenerator) createEthernetInterfaceResources(tmpl, ts 
 func (g *PanoramaNetworkingGenerator) createGRETunnelResources(tmpl, ts string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.GreTunnel, []string{tmpl, ts}},
-		tmpl+":"+ts+":", false, "panos_panorama_gre_tunnel", false, "", "", "", "",
+		tmpl+":"+ts+":", false, "panos_panorama_gre_tunnel",
 	)
 }
 
@@ -420,7 +408,7 @@ func (g *PanoramaNetworkingGenerator) createIPSECCryptoProfileResources(tmpl, ts
 func (g *PanoramaNetworkingGenerator) createIPSECTunnelProxyIDIPv4Resources(tmpl, ts, ipsecTunnel string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.IpsecTunnelProxyId, []string{tmpl, ts, ipsecTunnel}},
-		tmpl+":"+ts+":"+ipsecTunnel+":", true, "panos_panorama_ipsec_tunnel_proxy_id_ipv4", false, "", "", "", "",
+		tmpl+":"+ts+":"+ipsecTunnel+":", true, "panos_panorama_ipsec_tunnel_proxy_id_ipv4",
 	)
 }
 
@@ -451,7 +439,7 @@ func (g *PanoramaNetworkingGenerator) createLayer2SubInterfaceResources(tmpl, ts
 	// TO FIX: check disabled!
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.Layer2Subinterface, []string{tmpl, ts, interfaceType, parentInterface, parentMode}},
-		tmpl+":"+ts+":"+interfaceType+":"+parentInterface+":"+parentMode+":"+vsys+":", true, "panos_panorama_layer2_subinterface", false, vsys, util.InterfaceImport, tmpl, ts,
+		tmpl+":"+ts+":"+interfaceType+":"+parentInterface+":"+parentMode+":"+vsys+":", true, "panos_panorama_layer2_subinterface",
 	)
 }
 
@@ -459,7 +447,7 @@ func (g *PanoramaNetworkingGenerator) createLayer3SubInterfaceResources(tmpl, ts
 	// TO FIX: check disabled!
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.Layer3Subinterface, []string{tmpl, ts, interfaceType, parentInterface}},
-		tmpl+":"+ts+":"+interfaceType+":"+parentInterface+":"+vsys+":", true, "panos_panorama_layer3_subinterface", false, vsys, util.InterfaceImport, tmpl, ts,
+		tmpl+":"+ts+":"+interfaceType+":"+parentInterface+":"+vsys+":", true, "panos_panorama_layer3_subinterface",
 	)
 }
 
@@ -522,21 +510,21 @@ func (g *PanoramaNetworkingGenerator) createManagementProfileResources(tmpl, ts 
 func (g *PanoramaNetworkingGenerator) createMonitorProfileResources(tmpl, ts string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.MonitorProfile, []string{tmpl, ts}},
-		tmpl+":"+ts+":", true, "panos_panorama_monitor_profile", false, "", "", "", "",
+		tmpl+":"+ts+":", true, "panos_panorama_monitor_profile",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createRedistributionProfileResources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.RedistributionProfile, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_redistribution_profile_ipv4", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_redistribution_profile_ipv4",
 	)
 }
 
 func (g *PanoramaNetworkingGenerator) createStaticRouteIpv4Resources(tmpl, ts, virtualRouter string) []terraformutils.Resource {
 	return g.createResourcesFromList(
 		getGeneric{g.client.(*pango.Panorama).Network.StaticRoute, []string{tmpl, ts, virtualRouter}},
-		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_static_route_ipv4", false, "", "", "", "",
+		tmpl+":"+ts+":"+virtualRouter+":", true, "panos_panorama_static_route_ipv4",
 	)
 }
 
