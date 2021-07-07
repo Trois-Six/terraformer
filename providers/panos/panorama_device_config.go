@@ -42,7 +42,7 @@ func (g *PanoramaDeviceConfigGenerator) createResourcesFromList(o getGeneric, id
 	default:
 		err = fmt.Errorf("not supported")
 	}
-	if err != nil {
+	if err != nil || len(l) == 0 {
 		return []terraformutils.Resource{}
 	}
 

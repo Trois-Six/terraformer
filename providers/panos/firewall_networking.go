@@ -15,7 +15,9 @@
 package panos
 
 import (
+	"encoding/base64"
 	"fmt"
+	"strconv"
 
 	"github.com/GoogleCloudPlatform/terraformer/terraformutils"
 	"github.com/PaloAltoNetworks/pango"
@@ -45,7 +47,7 @@ func (g *FirewallNetworkingGenerator) createResourcesFromList(o getGeneric, idPr
 	default:
 		err = fmt.Errorf("not supported")
 	}
-	if err != nil {
+	if err != nil || len(l) == 0 {
 		return []terraformutils.Resource{}
 	}
 
@@ -220,17 +222,46 @@ func (g *FirewallNetworkingGenerator) createBGPDampeningProfileResources(virtual
 	)
 }
 
+func (g *FirewallNetworkingGenerator) createBGPRuleGroupResourcesFromList(o getGeneric, terraformResourceName string) (resources []terraformutils.Resource) {
+	l, err := o.i.(getListWithOneArg).GetList(o.params[0])
+	if err != nil || len(l) == 0 {
+		return []terraformutils.Resource{}
+	}
+
+	var positionReference string
+	id := o.params[0] + ":" + strconv.Itoa(util.MoveTop) + "::"
+
+	for k, r := range l {
+		if k > 0 {
+			id = o.params[0] + ":" + strconv.Itoa(util.MoveAfter) + ":" + positionReference + ":"
+		}
+
+		id += base64.StdEncoding.EncodeToString([]byte(r))
+		positionReference = r
+
+		resources = append(resources, terraformutils.NewSimpleResource(
+			id,
+			normalizeResourceName(r),
+			terraformResourceName,
+			"panos",
+			[]string{},
+		))
+	}
+
+	return resources
+}
+
 func (g *FirewallNetworkingGenerator) createBGPExportRuleGroupResources(virtualRouter string) []terraformutils.Resource {
-	return g.createResourcesFromList(
+	return g.createBGPRuleGroupResourcesFromList(
 		getGeneric{g.client.(*pango.Firewall).Network.BgpExport, []string{virtualRouter}},
-		virtualRouter+":", true, "panos_bgp_export_rule_group", false, "",
+		"panos_bgp_export_rule_group",
 	)
 }
 
 func (g *FirewallNetworkingGenerator) createBGPImportRuleGroupResources(virtualRouter string) []terraformutils.Resource {
-	return g.createResourcesFromList(
+	return g.createBGPRuleGroupResourcesFromList(
 		getGeneric{g.client.(*pango.Firewall).Network.BgpImport, []string{virtualRouter}},
-		virtualRouter+":", true, "panos_bgp_import_rule_group", false, "",
+		"panos_bgp_import_rule_group",
 	)
 }
 
@@ -646,7 +677,6 @@ func (g *FirewallNetworkingGenerator) PostConvertHook() error {
 
 		if r.InstanceInfo.Type == "panos_bgp_peer" {
 			r.Item["virtual_router"] = "${panos_bgp." + normalizeResourceName(r.Item["virtual_router"].(string)) + ".virtual_router}"
-			r.Item["bgp_peer_group"] = "${panos_bgp_peer_group." + normalizeResourceName(r.Item["panos_bgp_peer_group"].(string)) + ".name}"
 			r.Item["peer_as"] = "${panos_bgp." + normalizeResourceName(r.Item["virtual_router"].(string)) + ".as_number}"
 		}
 
@@ -670,7 +700,9 @@ func (g *FirewallNetworkingGenerator) PostConvertHook() error {
 		if r.InstanceInfo.Type == "panos_ipsec_tunnel" {
 			r.Item["tunnel_interface"] = mapInterfaceNames[r.Item["tunnel_interface"].(string)]
 			r.Item["ak_ike_gateway"] = mapIKEGatewayNames[r.Item["ak_ike_gateway"].(string)]
-			r.Item["ak_ipsec_crypto_profile"] = mapIPSECCryptoProfileNames[r.Item["ak_ipsec_crypto_profile"].(string)]
+			if _, ok := r.Item["ak_ipsec_crypto_profile"]; ok {
+				r.Item["ak_ipsec_crypto_profile"] = mapIPSECCryptoProfileNames[r.Item["ak_ipsec_crypto_profile"].(string)]
+			}
 		}
 
 		if r.InstanceInfo.Type == "panos_ipsec_tunnel_proxy_id_ipv4" {

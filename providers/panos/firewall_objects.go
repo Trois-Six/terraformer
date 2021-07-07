@@ -25,7 +25,7 @@ type FirewallObjectsGenerator struct {
 
 func (g *FirewallObjectsGenerator) createResourcesFromList(o getGeneric, idPrefix string, terraformResourceName string) (resources []terraformutils.Resource) {
 	l, err := o.i.(getListWithOneArg).GetList(o.params[0])
-	if err != nil {
+	if err != nil || len(l) == 0 {
 		return []terraformutils.Resource{}
 	}
 
